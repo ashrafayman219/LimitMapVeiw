@@ -295,6 +295,15 @@ async function initializeMap() {
   }
 }
 
+// calling
+initializeMap()
+  .then(() => {
+    console.log("Map Returned From Require Scope", displayMap);
+    // You can work with the view object here
+  })
+  .catch((error) => {
+    // Handle any errors here
+  });
 
   async function addWidgets() {
     try {
