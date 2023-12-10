@@ -153,41 +153,57 @@ async function initializeMap() {
       intl.setLocale("ar");
       esriConfig.apiKey = "AAPK756f006de03e44d28710cb446c8dedb4rkQyhmzX6upFiYPzQT0HNQNMJ5qPyO1TnPDSPXT4EAM_DlQSj20ShRD7vyKa7a1H";
 
-      const f1 = new FeatureLayer({
-        url: "https://services5.arcgis.com/zadMqI0lzNpQXGSX/arcgis/rest/services/borders_KML/FeatureServer/1",
-        title: "حدود البلديات"
-      });
 
+
+      
       // Typical usage
       KMLL = new KMLLayer({
         url: "https://pmo2023.s3.eu-central-1.amazonaws.com/asir_districts.kml", // url to the service
         listMode: 'hide-children',
         title: "الأحياء",
         // maxScale: 1000,
-        minScale: 5000000,
+        // minScale: 5000000,
         opacity: 1
       });
+      // KMLL.maxScale = 1000;
+
+      // // Typical usage
+      // KMLL2 = new KMLLayer({
+      //   // url: "https://pmo2023.s3.eu-central-1.amazonaws.com/doc.kml"// url to the service
+      // });
+
+
+      const f1 = new FeatureLayer({
+        url: "https://services5.arcgis.com/zadMqI0lzNpQXGSX/arcgis/rest/services/borders_KML/FeatureServer/1",
+        title: "حدود البلديات"
+      });
+
+
+
 
       displayMap = new Map({
-        // basemap: "dark-gray-vector",
         basemap: "dark-gray-vector",
-        layers: [KMLL, f1],
+        layers: [f1, KMLL],
       });
 
       view = new MapView({
         // center: [31.233334, 30.033333], // longitude, latitude, centered on Egypt
-        center: [39.82600564584681, 21.42278518229223], // longitude, latitude, centered on Mecca
+        center: [42.515378351097986, 24.23433841501793], // longitude, latitude, centered on SA
         container: "displayMap",
         map: displayMap,
-        zoom: 16,
+        zoom: 6,
         // constraints: {
-        //   minZoom: 16 // Use this constraint to avoid zooming out too far
+        //   minZoom: 7 // Use this constraint to avoid zooming out too far
         // }
       });
 
-      // view.when(function() {
-      //   limitMapView(view);
-      // });
+      // const KMLLayerView = await view.whenLayerView(fl);
+      // KMLLayerView.highlightOptions = {
+      //   color: "#39ff14",
+      //   haloOpacity: 0.9,
+      //   fillOpacity: 0
+      // };
+
 
       const f1LayerView = await view.whenLayerView(f1);
       f1LayerView.highlightOptions = {
@@ -196,11 +212,17 @@ async function initializeMap() {
         fillOpacity: 0
       };
 
-
       gL = new GraphicsLayer({
         title: "المشاريع",
       });
       displayMap.add(gL);
+
+      // const glLayerView = await view.whenLayerView(gL);
+      // glLayerView.highlightOptions = {
+      //   color: "#39ff14",
+      //   haloOpacity: 0.9,
+      //   fillOpacity: 0
+      // };
 
       graphicsLayer = new GraphicsLayer({
         title: "طبـقة الرسـم",
@@ -229,11 +251,6 @@ async function initializeMap() {
           // Handle any errors here
         });
 
-      f1.queryExtent().then(function(response){
-        // go to the extent of the results satisfying the query
-        view.goTo(response.extent);
-      })
-      
       // //intiate graphics
       // getGraphics(arrayOfDisplayedGraphics)
       //   .then(([view, displayMap, gL]) => {
@@ -244,6 +261,23 @@ async function initializeMap() {
       //   .catch((error) => {
       //     // Handle any errors here
       //   });
+
+      // // Once the layer loads, set the view's extent to the layer's fullextent
+      // KMLL.when(function(){
+      //   view.extent = KMLL.fullExtent;
+      // });
+
+      f1.queryExtent().then(function(response){
+        // go to the extent of the results satisfying the query
+        view.goTo(response.extent);
+      })
+
+
+      // view.when(function() {
+      //   limitMapView(view);
+      // });
+
+
       // view.when(function () {
       //   view.goTo(
       //     {
@@ -260,15 +294,6 @@ async function initializeMap() {
     throw error; // Rethrow the error to handle it further, if needed
   }
 }
-// calling
-initializeMap()
-  .then(() => {
-    console.log("Map Returned From Require Scope", displayMap);
-    // You can work with the view object here
-  })
-  .catch((error) => {
-    // Handle any errors here
-  });
 
 
   async function addWidgets() {
