@@ -138,22 +138,40 @@ function loadModule(moduleName) {
 async function initializeMap() {
   try {
     if (!view) {
-      const [esriConfig, Map, MapView, intl, GraphicsLayer] = await Promise.all(
+      const [esriConfig, Map, MapView, intl, GraphicsLayer, KMLLayer, FeatureLayer] = await Promise.all(
         [
           loadModule("esri/config"),
           loadModule("esri/Map"),
           loadModule("esri/views/MapView"),
           loadModule("esri/intl"),
           loadModule("esri/layers/GraphicsLayer"),
+          loadModule("esri/layers/KMLLayer"),
+          loadModule("esri/layers/FeatureLayer"),
         ]
       );
 
       intl.setLocale("ar");
       esriConfig.apiKey = "AAPK756f006de03e44d28710cb446c8dedb4rkQyhmzX6upFiYPzQT0HNQNMJ5qPyO1TnPDSPXT4EAM_DlQSj20ShRD7vyKa7a1H";
 
+      const f1 = new FeatureLayer({
+        url: "https://services5.arcgis.com/zadMqI0lzNpQXGSX/arcgis/rest/services/borders_KML/FeatureServer/1",
+        title: "حدود البلديات"
+      });
+
+      // Typical usage
+      KMLL = new KMLLayer({
+        url: "https://pmo2023.s3.eu-central-1.amazonaws.com/asir_districts.kml", // url to the service
+        listMode: 'hide-children',
+        title: "الأحياء",
+        // maxScale: 1000,
+        minScale: 5000000,
+        opacity: 1
+      });
+
       displayMap = new Map({
         // basemap: "dark-gray-vector",
-        basemap: "osm-standard",
+        basemap: "dark-gray-vector",
+        layers: [KMLL, fl],
       });
 
       view = new MapView({
@@ -162,18 +180,25 @@ async function initializeMap() {
         container: "displayMap",
         map: displayMap,
         zoom: 16,
-        constraints: {
-          minZoom: 16 // Use this constraint to avoid zooming out too far
-        }
+        // constraints: {
+        //   minZoom: 16 // Use this constraint to avoid zooming out too far
+        // }
       });
 
-      view.when(function() {
-        limitMapView(view);
-      });
+      // view.when(function() {
+      //   limitMapView(view);
+      // });
+
+      const f1LayerView = await view.whenLayerView(f1);
+      f1LayerView.highlightOptions = {
+        color: "#39ff14",
+        haloOpacity: 0.9,
+        fillOpacity: 0
+      };
 
 
       gL = new GraphicsLayer({
-        title: "طبـقة العرض",
+        title: "المشاريع",
       });
       displayMap.add(gL);
 
@@ -204,6 +229,11 @@ async function initializeMap() {
           // Handle any errors here
         });
 
+      f1.queryExtent().then(function(response){
+        // go to the extent of the results satisfying the query
+        view.goTo(response.extent);
+      })
+      
       // //intiate graphics
       // getGraphics(arrayOfDisplayedGraphics)
       //   .then(([view, displayMap, gL]) => {
@@ -318,13 +348,14 @@ initializeMap()
   
       var layerList = new LayerList({
         view: view,
-        listItemCreatedFunction: function (event) {
-          var item = event.item;
-          // displays the legend for each layer list item
-          item.panel = {
-            content: "legend",
-          };
-        },
+      // listItemCreatedFunction: function (event) {
+      //   var item = event.item;
+      //   // displays the legend for each layer list item
+      //   item.panel = {
+      //     content: "legend",
+      //   };
+      // },
+      // showLegend: true
       });
       var Expand5 = new Expand({
         view: view,
